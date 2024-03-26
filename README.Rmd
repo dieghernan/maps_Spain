@@ -1,27 +1,41 @@
-Tutorial: plotting maps of Spain with ggplot2
-================
-Ariane Aumaitre
-27 de octubre de 2019
+---
+title: "Tutorial: plotting maps of Spain with ggplot2"
+author: "Ariane Aumaitre"
+date: "27 de octubre de 2019"
+output:  github_document
+editor_options:
+  markdown:
+    wrap: 80
+---
 
-After spending the last few days playing with maps, in this blogpost
-I’ll be showing you how to create what I think look like nice maps using
-just ggplot. While other packages may seem more map-friendly at first
-glance, I don’t think any of the alternatives gives the possibility of
-personalizing the output as much as ggplot does - and sorry not sorry I
-love doing that.
+```{r global options, include = FALSE}
+knitr::opts_chunk$set(
+  warning = FALSE, message = FALSE, dev = "ragg_png",
+  tidy = "styler",
+  dpi = 300,
+  fig.path = "README-",
+  out.width = "100%"
+)
+```
 
-Little disclaimer: a lot of the inspiration for this post comes from the
-amazing [Beautiful thematic maps with
+After spending the last few days playing with maps, in this blogpost I'll be
+showing you how to create what I think look like nice maps using just ggplot.
+While other packages may seem more map-friendly at first glance, I don't think
+any of the alternatives gives the possibility of personalizing the output as
+much as ggplot does - and sorry not sorry I love doing that.
+
+Little disclaimer: a lot of the inspiration for this post comes from the amazing
+[Beautiful thematic maps with
 ggplot2](https://timogrossenbacher.ch/2016/12/beautiful-thematic-maps-with-ggplot2-only/)
-blogpost, and I don’t think my maps bring any added value to it.
-However, this may still be useful if you’re interested in plotting a map
-of *Spain*, as I’ll be discussing some specificities of that.
+blogpost, and I don't think my maps bring any added value to it. However, this
+may still be useful if you're interested in plotting a map of *Spain*, as I'll
+be discussing some specificities of that.
 
-I’ll be “drawing” two maps here: a regional and a local one. Once you
-get the logic, the process is basically the same, but I think it can
-help in understanding the logic incrementally. Let’s go!
+I'll be "drawing" two maps here: a regional and a local one. Once you get the
+logic, the process is basically the same, but I think it can help in
+understanding the logic incrementally. Let's go!
 
-``` r
+```{r}
 library(tidyverse) # can we actually code without it?
 library(sf) # to manipulate shapefiles
 library(mapSpain) # to get shapes of Spain
@@ -30,15 +44,14 @@ library(wesanderson) # for some nice color palettes
 
 ### First things first: we need shapefiles
 
-Maps are drawn in ggplot using **geom_sf()**. But in order to draw any
-of these, we first need a `sf` object giving us the coordinates of the
-borders of our map. You can find a lot of shapefiles online, as well as
-libraries that provide these type of object. I’ll be using for this
-tutorial the library `mapSpain`.
+Maps are drawn in ggplot using **geom_sf()**. But in order to draw any of these,
+we first need a `sf` object giving us the coordinates of the borders of our map.
+You can find a lot of shapefiles online, as well as libraries that provide these
+type of object. I'll be using for this tutorial the library `mapSpain`.
 
-Now it’s time to get the shapefiles.
+Now it's time to get the shapefiles.
 
-``` r
+```{r, message = FALSE}
 # regional shapefile:
 sf_regional <- esp_get_ccaa_siane()
 
@@ -46,11 +59,11 @@ sf_regional <- esp_get_ccaa_siane()
 canaries_line <- esp_get_can_box()
 ```
 
-Now time to repeat the same process for the local level. Here, I’ll be
-using the ine_cod (CODIGOINE in the database) variable to identify the
-municipalities, that I need to create:
+Now time to repeat the same process for the local level. Here, I'll be using the
+ine_cod (CODIGOINE in the database) variable to identify the municipalities,
+that I need to create:
 
-``` r
+```{r}
 # local shapefile:
 sf_local <- esp_get_munic_siane() %>%
   mutate(ine_cod = paste0(cpro, cmun))
@@ -58,27 +71,27 @@ sf_local <- esp_get_munic_siane() %>%
 
 ### A regional plot of intergenerational inequalities
 
-Now that we have our shapefiles ready to be plotted, we just need some
-data to represent. Here I’ll be using what got me started with this in
-the first place: the relative income of young people (18-25) as compared
-to the national average income, by region (“Comunidad Autónoma”). This
-comes from the Spanish branch of the EU SILC, that is publicly available
+Now that we have our shapefiles ready to be plotted, we just need some data to
+represent. Here I'll be using what got me started with this in the first place:
+the relative income of young people (18-25) as compared to the national average
+income, by region ("Comunidad Autónoma"). This comes from the Spanish branch of
+the EU SILC, that is publicly available
 [here](https://www.ine.es/dyngs/INEbase/es/operacion.htm?c=Estadistica_C&cid=1254736176807&menu=ultiDatos&idp=1254735976608),
-and I’m using data from 2017. That’s what I was working with, but you
-can use whatever you want.
+and I'm using data from 2017. That's what I was working with, but you can use
+whatever you want.
 
-**Keep in mind** that you’ll need to join your data to represent with
-the shapefile data, so be sure that you have a column in each of those
-that allows for joining. I’m going to skip the data cleaning here and go
-directly to the join, that I’ll do with the id column (this was the
-easiest as both data frames had the same order).
+**Keep in mind** that you'll need to join your data to represent with the
+shapefile data, so be sure that you have a column in each of those that allows
+for joining. I'm going to skip the data cleaning here and go directly to the
+join, that I'll do with the id column (this was the easiest as both data frames
+had the same order).
 
 **Note that** the original `plot_data.RData` already had an `id` column
-representing the numeric identifier of the “Comunidad Autónoma” but
-starting in `0` instead of `1`, so I need to create a filed named `id`
-following that logic in `regional_plot`.
+representing the numeric identifier of the "Comunidad Autónoma" but starting in
+`0` instead of `1`, so I need to create a filed named `id` following that logic
+in `regional_plot`.
 
-``` r
+```{r}
 # importing the data
 load("plot_data.RData")
 
@@ -89,10 +102,10 @@ regional_plot <- sf_regional %>%
   left_join(plot_data, by = "id")
 ```
 
-It’s finally time to plot! We’ll start with a very basic plot before
-getting picky with the details:
+It's finally time to plot! We'll start with a very basic plot before getting
+picky with the details:
 
-``` r
+```{r ugly}
 regional_plot %>%
   ggplot() +
   # ri_disp is the income variable
@@ -100,25 +113,23 @@ regional_plot %>%
   theme_minimal()
 ```
 
-<img src="README-ugly-1.png" width="100%" />
+Let's make a short list of things we *should hate* from this map:
 
-Let’s make a short list of things we *should hate* from this map:
+-   All that text in the axis. We should say goodbye to it.
+-   That legend looks really... ugly, right?
+-   That blues scale is not that bad, but we can probably think of something
+    better.
 
-- All that text in the axis. We should say goodbye to it.
-- That legend looks really… ugly, right?
-- That blues scale is not that bad, but we can probably think of
-  something better.
-
-Let’s get to work and do this a bit more appealing.
+Let's get to work and do this a bit more appealing.
 
 #### The theme
 
-We can move on to making things pretty. The next chunk creates a nice
-theme for maps. I’ve done it by mixing some things I usually apply to
-all my plots with some more map-specific elements taken (and slightly
-modified) from the Swiss map blogpost I quoted above:
+We can move on to making things pretty. The next chunk creates a nice theme for
+maps. I've done it by mixing some things I usually apply to all my plots with
+some more map-specific elements taken (and slightly modified) from the Swiss map
+blogpost I quoted above:
 
-``` r
+```{r}
 theme_ari_maps <- function(...) {
   theme_minimal() +
     theme(
@@ -149,27 +160,20 @@ theme_ari_maps <- function(...) {
 
 #### The legend
 
-Once again, here I’m taking full inspiration from Timo Grossenbacher’s
-work, and this is mostly his code (again, it’s
+Once again, here I'm taking full inspiration from Timo Grossenbacher's work, and
+this is mostly his code (again, it's
 [here](https://timogrossenbacher.ch/2016/12/beautiful-thematic-maps-with-ggplot2-only/)).
-The details of the legend later on in the ggplot call also come from
-there. Even if my measure of relative income is continuous, I think the
-plot will be more intuitive I I turn it into a “fake discrete” by
-dividing my data into 5 quintiles and converting it into five
-categories. I do this in the next chunk, and then use the quintiles from
-the actual data to choose my “pretty breaks” and create the labels.
-Whether you do this or not, and the breaks you choose will fully depend
-on your data and personal preferences.
+The details of the legend later on in the ggplot call also come from there. Even
+if my measure of relative income is continuous, I think the plot will be more
+intuitive I I turn it into a "fake discrete" by dividing my data into 5
+quintiles and converting it into five categories. I do this in the next chunk,
+and then use the quintiles from the actual data to choose my "pretty breaks" and
+create the labels. Whether you do this or not, and the breaks you choose will
+fully depend on your data and personal preferences.
 
-``` r
+```{r}
 # Getting the quantiles:
 quantile(regional_plot$ri_disp, probs = c(.2, .4, .6, .8), na.rm = TRUE)
-```
-
-    ##       20%       40%       60%       80% 
-    ## 0.7592214 0.8307930 0.9445546 1.0393723
-
-``` r
 # This returns .76, .86, .94, 1.03
 
 # I'm going to slightly change the breaks to make them prettier
@@ -193,11 +197,11 @@ for (idx in 1:length(brks)) {
 labels <- labels[1:length(labels) - 1]
 ```
 
-Now that breaks and labels are created, the next step transforms our
-`ri_disp` variable and cuts it into the categories created by the
-breaks. This is what we’ll be using from now on for the `fill` aes!
+Now that breaks and labels are created, the next step transforms our `ri_disp`
+variable and cuts it into the categories created by the breaks. This is what
+we'll be using from now on for the `fill` aes!
 
-``` r
+```{r}
 regional_plot$brks <- cut(regional_plot$ri_disp,
   breaks = brks,
   include.lowest = TRUE,
@@ -209,24 +213,23 @@ brks_scale <- levels(regional_plot$brks)
 
 #### Getting there: colors
 
-We’re almost there, but first, let’s choose a color palette. These days
-I’ve been using a lot [Wes Anderson
-palettes](https://github.com/karthik/wesanderson), and I think the
-“Zissou1”, which ranges from blue to red, is quite appropriate for this
-kind of incremental variable. We have 5 categories so I’m creating a
-discrete scale with 5 values.
+We're almost there, but first, let's choose a color palette. These days I've
+been using a lot [Wes Anderson
+palettes](https://github.com/karthik/wesanderson), and I think the "Zissou1",
+which ranges from blue to red, is quite appropriate for this kind of incremental
+variable. We have 5 categories so I'm creating a discrete scale with 5 values.
 
-``` r
+```{r}
 pal <- wes_palette("Zissou1", 5, type = "discrete")
 ```
 
 #### Time to plot (again)
 
-Now that we have fixed most of our issues with the raw plot, it’s time
-to do the final ggplot call. I’ve tried to add comments to all the steps
-which could create confusion.
+Now that we have fixed most of our issues with the raw plot, it's time to do the
+final ggplot call. I've tried to add comments to all the steps which could
+create confusion.
 
-``` r
+```{r regional}
 regional_plot %>%
   ggplot() +
   # we use brks for the fill and resuce the size of the borders
@@ -264,23 +267,21 @@ regional_plot %>%
   )
 ```
 
-<img src="README-regional-1.png" width="100%" />
-
 ## Average income at the local level
 
-Last but not least, we’ll be applying all the logic from above to create
-a map at the local level. I’ll be using data on **average income at the
-local level** (variable: `renta`) that can be downloaded from
-[here](https://www.ine.es/experimental/atlas/exp_atlas_tab.htm). The
-steps to be followed are the same:
+Last but not least, we'll be applying all the logic from above to create a map
+at the local level. I'll be using data on **average income at the local level**
+(variable: `renta`) that can be downloaded from
+[here](https://www.ine.es/experimental/atlas/exp_atlas_tab.htm). The steps to be
+followed are the same:
 
-- Importing the data (I’m skipping the data cleaning again)
-- Joining it with the shapefile data frame (by variable `ine_cod`)
-- Bring the Canary Islands closer
-- Playing around a bit to get nice legend breaks
-- Get our theme and plot!
+-   Importing the data (I'm skipping the data cleaning again)
+-   Joining it with the shapefile data frame (by variable `ine_cod`)
+-   Bring the Canary Islands closer
+-   Playing around a bit to get nice legend breaks
+-   Get our theme and plot!
 
-``` r
+```{r}
 # Loading data
 load("income_data.RData")
 
@@ -294,12 +295,7 @@ local_plot <- sf_local %>%
 
 # Getting quintiles to decide on breaks
 quantile(local_plot$renta, probs = c(.2, .4, .6, .8), na.rm = TRUE)
-```
 
-    ##   20%   40%   60%   80% 
-    ##  8370  9564 10651 12115
-
-``` r
 # This returns 8309, 9538, 10674, 12083
 
 
@@ -335,7 +331,7 @@ brks_scale <- levels(local_plot$brks)
 
 And time to create the final plot!!
 
-``` r
+```{r local}
 local_plot %>%
   ggplot() +
   # No borders this time
@@ -372,5 +368,3 @@ local_plot %>%
     legend.key.height = unit(2, units = "mm")
   )
 ```
-
-<img src="README-local-1.png" width="100%" />
