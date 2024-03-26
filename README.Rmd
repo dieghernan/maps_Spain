@@ -342,7 +342,7 @@ local_plot %>%
   # AND setting how I want the scale to look like
   scale_fill_manual(
     values = rev(pal), # I use rev so that red is for lowest values
-    breaks = rev(brks_scale),
+    breaks = brks_scale,
     name = "Renta media (€)",
     drop = FALSE,
     guide = guide_legend(
